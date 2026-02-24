@@ -1,0 +1,20 @@
+# Local environment secrets
+.env
+
+# Runtime-generated files
+uploads/receipts/*.pdf
+uploads/forms/*.pdf
+
+# Dependencies (install via composer)
+vendor/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs/temp
+*.log
+tmp/
+temp/

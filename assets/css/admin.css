@@ -1,0 +1,109 @@
+:root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --line: #d8e0ee;
+    --text: #13233a;
+    --muted: #5f6f86;
+    --brand: #0f62fe;
+    --danger: #b42318;
+    --success: #067647;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Segoe UI, Tahoma, sans-serif; color: var(--text); background: var(--bg); }
+.login-page { display: grid; min-height: 100vh; place-items: center; }
+.login-box { width: min(420px, 92vw); background: var(--surface); padding: 28px; border-radius: 12px; border: 1px solid var(--line); display: grid; gap: 10px; }
+.login-box h1 { margin: 0 0 6px; font-size: 1.4rem; }
+.admin-shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.sidebar { background: #0f1f33; color: #fff; padding: 20px; }
+.sidebar h2 { margin: 0 0 20px; font-size: 1.1rem; }
+.sidebar nav { display: grid; gap: 8px; }
+.sidebar a { color: #c9d6ee; text-decoration: none; padding: 10px; border-radius: 8px; }
+.sidebar a.active, .sidebar a:hover { background: #173255; color: #fff; }
+main { display: grid; grid-template-rows: auto 1fr auto; }
+.topbar { background: var(--surface); border-bottom: 1px solid var(--line); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+.topbar-right { display: flex; gap: 12px; align-items: center; }
+.topbar-right a { color: var(--brand); text-decoration: none; }
+.content { padding: 18px; }
+.footer { border-top: 1px solid var(--line); padding: 12px 18px; color: var(--muted); background: var(--surface); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.cards article { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.cards h3 { margin: 0 0 8px; color: var(--muted); font-size: .95rem; }
+.cards p { margin: 0; font-size: 1.5rem; font-weight: 700; }
+table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+th, td { border-bottom: 1px solid var(--line); padding: 10px; text-align: left; font-size: .92rem; }
+th { background: #eef3fb; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 8px; max-width: 600px; margin-bottom: 16px; }
+label { font-size: .9rem; color: var(--muted); }
+input, select, button { font: inherit; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--line); }
+button { background: var(--brand); color: #fff; border: 0; cursor: pointer; }
+.flash { padding: 10px 14px; margin: 12px 18px 0; border-radius: 8px; font-size: .92rem; }
+.flash.success { background: #ecfdf3; color: var(--success); border: 1px solid #abefc6; }
+.flash.error { background: #fef3f2; color: var(--danger); border: 1px solid #fecdca; }
+code { display: inline-block; margin-top: 5px; font-size: .85rem; color: var(--muted); word-break: break-all; }
+
+/* Users form: horizontal layout with multiple fields per row */
+.user-form-panel {
+    max-width: 100%;
+    padding: 10px 12px;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.user-form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px 12px;
+}
+.user-form-grid .form-field {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+.user-form-panel h3 {
+    margin: 0 0 6px;
+    font-size: .96rem;
+}
+.user-form-panel label {
+    font-size: .76rem;
+    margin: 0;
+    white-space: normal;
+}
+.user-form-panel input,
+.user-form-panel select {
+    font-size: .82rem;
+    padding: 6px 8px;
+    width: 100%;
+}
+.user-form-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.btn-link-secondary {
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    text-decoration: none;
+    color: var(--text);
+    background: #fff;
+}
+.user-top-layout {
+    display: block;
+    margin: 0 0 12px;
+}
+.user-form-wrap { width: 100%; }
+
+@media (max-width: 1200px) {
+    .user-form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+    .user-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+}
+@media (max-width: 640px) {
+    .user-form-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+    .admin-shell { grid-template-columns: 1fr; }
+    .sidebar { position: sticky; top: 0; z-index: 5; }
+}

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Canada travel background">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1e3a"/>
+      <stop offset="55%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g1)"/>
+  <circle cx="1290" cy="170" r="180" fill="rgba(255,255,255,.12)"/>
+  <path d="M0 660 C210 620, 390 740, 600 700 C820 655, 980 765, 1240 720 C1410 690, 1500 730, 1600 700 L1600 900 L0 900 Z" fill="rgba(255,255,255,.16)"/>
+  <path d="M920 420 l22 38 h43 l-35 25 13 42 -36-24 -36 24 13-42 -35-25 h43z" fill="#fff"/>
+  <text x="90" y="770" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="74" font-weight="700">Canada Tourism &amp; Study</text>
+  <text x="90" y="828" fill="rgba(255,255,255,.9)" font-family="Segoe UI, Arial, sans-serif" font-size="34">Apply • Travel • Explore</text>
+</svg>

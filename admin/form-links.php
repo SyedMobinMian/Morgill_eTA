@@ -7,25 +7,29 @@ requireAdmin();
 
 // Public form links ki static mapping.
 $forms = [
-    ['name' => 'Canada Form', 'country' => 'Canada', 'path' => 'form-canada.php'],
-    ['name' => 'Vietnam Form', 'country' => 'Vietnam', 'path' => 'form-vietnam.php'],
-    ['name' => 'UK Form', 'country' => 'UK', 'path' => 'form-uk.php'],
+    ['name' => 'Canada Form', 'country' => 'Canada', 'path' => 'form-canada.php', 'class' => 'form-country-canada'],
+    ['name' => 'Vietnam Form', 'country' => 'Vietnam', 'path' => 'form-vietnam.php', 'class' => 'form-country-vietnam'],
+    ['name' => 'UK Form', 'country' => 'UK', 'path' => 'form-uk.php', 'class' => 'form-country-uk'],
 ];
 
 renderAdminLayoutStart('Forms', 'forms');
 ?>
-<div class="cards">
-    <!-- Har form card loop se render ho raha hai -->
+<div class="form-link-grid">
     <?php foreach ($forms as $form): ?>
-        <article>
+        <?php $url = rtrim(APP_URL, '/') . '/' . $form['path']; ?>
+        <a
+            class="form-link-card <?= esc($form['class']) ?>"
+            href="<?= esc($url) ?>"
+            target="_blank"
+            rel="noopener"
+            title="Open <?= esc($form['country']) ?> Form"
+            aria-label="Open <?= esc($form['country']) ?> Form"
+        >
+            <span class="form-link-badge"><?= esc($form['country']) ?></span>
             <h3><?= esc($form['name']) ?></h3>
-            <p>Country: <?= esc($form['country']) ?></p>
-            <p>Public base form link:</p>
-            <code><?= esc(rtrim(APP_URL, '/') . '/' . $form['path']) ?></code>
-            <p style="margin-top:10px;">
-                <a href="<?= esc(rtrim(APP_URL, '/') . '/' . $form['path']) ?>" target="_blank" rel="noopener">Open <?= esc($form['country']) ?> Form</a>
-            </p>
-        </article>
+            <p>Open the live public application form</p>
+            <span class="form-link-cta">Open Form</span>
+        </a>
     <?php endforeach; ?>
 </div>
 <?php renderAdminLayoutEnd(); ?>

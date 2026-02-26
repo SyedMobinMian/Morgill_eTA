@@ -345,17 +345,53 @@ renderAdminLayoutStart('Users / Reports', 'users');
                 <td><?= $row['email_sent_at'] ? 'Sent' : 'Pending' ?></td>
                 <td><?= esc($row['form_number'] ?: '-') ?></td>
                 <td>
-                    <div style="display:flex; gap:6px;">
+                    <div class="action-icons">
                         <?php if ($canManage): ?>
-                            <a href="<?= esc(baseUrl('users.php?edit=' . (int)$row['traveller_id'])) ?>" style="padding:6px 8px; border-radius:6px; text-decoration:none; background:#eef4ff; color:#1f4fbf;">Edit</a>
-                            <form method="post" onsubmit="return confirm('Delete this user?');" style="margin:0;">
+                            <a
+                                href="<?= esc(baseUrl('users.php?edit=' . (int)$row['traveller_id'])) ?>"
+                                class="icon-btn icon-edit"
+                                title="Edit user"
+                                aria-label="Edit user"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zm17.7-10.04a1 1 0 0 0 0-1.41l-2.5-2.5a1 1 0 0 0-1.41 0L14.9 5.2l3.75 3.75 2.05-1.74z"/></svg>
+                            </a>
+                            <a
+                                href="<?= esc(baseUrl('documents.php')) ?>"
+                                class="icon-btn icon-pdf"
+                                title="View PDFs"
+                                aria-label="View PDFs"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7l-5-5zm1 7V3.5L18.5 7H15zM8 13h2.2a2 2 0 1 1 0 4H9v2H8v-6zm1 1v2h1.2a1 1 0 1 0 0-2H9zm4-1h2a2 2 0 0 1 0 4h-1v2h-1v-6zm1 1v2h1a1 1 0 1 0 0-2h-1z"/></svg>
+                            </a>
+                            <form method="post" onsubmit="return confirm('Delete this user?');">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="traveller_id" value="<?= (int)$row['traveller_id'] ?>">
                                 <input type="hidden" name="csrf_token" value="<?= esc(csrfToken()) ?>">
-                                <button type="submit" style="padding:6px 8px; border-radius:6px; background:#fef3f2; color:#b42318; border:1px solid #fecdca;">Delete</button>
+                                <button
+                                    type="submit"
+                                    class="icon-btn icon-delete"
+                                    title="Delete user"
+                                    aria-label="Delete user"
+                                >
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z"/></svg>
+                                </button>
                             </form>
                         <?php else: ?>
-                            <span style="color:var(--muted);">View only</span>
+                            <a
+                                href="<?= esc(baseUrl('documents.php')) ?>"
+                                class="icon-btn icon-pdf"
+                                title="View PDFs"
+                                aria-label="View PDFs"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7l-5-5zm1 7V3.5L18.5 7H15zM8 13h2.2a2 2 0 1 1 0 4H9v2H8v-6zm1 1v2h1.2a1 1 0 1 0 0-2H9zm4-1h2a2 2 0 0 1 0 4h-1v2h-1v-6zm1 1v2h1a1 1 0 1 0 0-2h-1z"/></svg>
+                            </a>
+                            <span
+                                class="icon-btn icon-view is-disabled"
+                                title="View only access"
+                                aria-label="View only access"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c5.5 0 9.7 4.1 11 7-1.3 2.9-5.5 7-11 7S2.3 14.9 1 12c1.3-2.9 5.5-7 11-7zm0 2C8.2 7 5 9.7 3.4 12 5 14.3 8.2 17 12 17s7-2.7 8.6-5C19 9.7 15.8 7 12 7zm0 2.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z"/></svg>
+                            </span>
                         <?php endif; ?>
                     </div>
                 </td>

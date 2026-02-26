@@ -1,24 +1,24 @@
-﻿/**
+/**
  * assets/js/form.js
  * Step order:
- * card-contact â†’ card-personal â†’ card-passport â†’ card-residential
- * â†’ card-background â†’ card-declaration
- * â†’ (group: card-traveller-added â†’ repeat) â†’ card-confirm â†’ card-payment
+ * card-contact → card-personal → card-passport → card-residential
+ * → card-background → card-declaration
+ * → (group: card-traveller-added → repeat) → card-confirm → card-payment
  */
 
-const BASE = 'backend/ajax/';
+const BASE = 'modules/ajax/';
 
-// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── State ─────────────────────────────────────────────────
 let currentTraveller = 1;
 let totalTravellers  = 1;
 let travelMode       = 'solo';
 
-// â”€â”€ CSRF token â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CSRF token ────────────────────────────────────────────
 function csrf() {
     return document.querySelector('meta[name="csrf-token"]')?.content || '';
 }
 
-// â”€â”€ Loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Loader ────────────────────────────────────────────────
 function showLoader(msg = 'Please wait...') {
     document.getElementById('eta-loader-msg').textContent = msg;
     document.getElementById('eta-loader').style.display = 'flex';
@@ -27,7 +27,7 @@ function hideLoader() {
     document.getElementById('eta-loader').style.display = 'none';
 }
 
-// â”€â”€ Toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Toast ─────────────────────────────────────────────────
 function showToast(msg, type = 'success') {
     const t = document.getElementById('eta-toast');
     t.textContent = msg;
@@ -36,7 +36,7 @@ function showToast(msg, type = 'success') {
     setTimeout(() => t.style.display = 'none', 4000);
 }
 
-// â”€â”€ Navigate to card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Navigate to card ──────────────────────────────────────
 function navTo(cardId) {
     document.querySelectorAll('.mini-card').forEach(c => c.classList.remove('active'));
     const card = document.getElementById(cardId);
@@ -48,7 +48,7 @@ function navTo(cardId) {
     if (typeof EtaValidator !== 'undefined') EtaValidator.attachLiveValidation(cardId);
 }
 
-// â”€â”€ Stepper update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stepper update ────────────────────────────────────────
 function updateStepper(cardId) {
     const step1Cards = ['card-contact','card-personal','card-passport','card-residential','card-background','card-declaration','card-traveller-added'];
     const step2Cards = ['card-confirm'];
@@ -72,7 +72,7 @@ function updateStepper(cardId) {
     }
 }
 
-// â”€â”€ Update person labels â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Update person labels ───────────────────────────────────
 function updatePersonLabels() {
     const label = `Traveller ${currentTraveller}`;
     ['contact','personal','passport','residential','background'].forEach(id => {
@@ -81,7 +81,7 @@ function updatePersonLabels() {
     });
 }
 
-// â”€â”€ Collect form data from a card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Collect form data from a card ────────────────────────
 function collectData(cardId, extra = {}) {
     const card = document.getElementById(cardId);
     const fd   = new FormData();
@@ -115,7 +115,7 @@ function collectData(cardId, extra = {}) {
     return fd;
 }
 
-// â”€â”€ Apply server-side errors to fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Apply server-side errors to fields ───────────────────
 function applyServerErrors(errors, cardId) {
     Object.entries(errors).forEach(([field, msg]) => {
         const el = document.querySelector(`#${cardId} [name="${field}"], #${cardId} [name="t_${field}"]`);
@@ -123,7 +123,7 @@ function applyServerErrors(errors, cardId) {
     });
 }
 
-// â”€â”€ Generic save step â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Generic save step ────────────────────────────────────
 async function saveStep(cardId, endpoint, onSuccess) {
     if (typeof EtaValidator !== 'undefined' && !EtaValidator.validateStep(cardId)) {
         showToast('Please fill in all required fields correctly.', 'error');
@@ -162,7 +162,7 @@ async function saveStep(cardId, endpoint, onSuccess) {
     }
 }
 
-// â”€â”€ Build traveller review list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Build traveller review list ───────────────────────────
 function escHtml(v) {
     return String(v ?? '').replace(/[&<>"']/g, ch => ({
         '&': '&amp;',
@@ -251,12 +251,12 @@ function editTraveller(num) {
     navTo('card-contact');
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  BUTTON WIRING â€” after DOM ready
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════
+//  BUTTON WIRING — after DOM ready
+// ═══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
 
-    // â”€â”€ 1.1 Contact â†’ Personal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 1.1 Contact → Personal ────────────────────────────
     document.getElementById('btn-contact-next')?.addEventListener('click', function() {
         // Read travel mode
         const modeRadio = document.querySelector('input[name="travel_mode"]:checked');
@@ -270,28 +270,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // â”€â”€ 1.2 Personal â†’ Passport â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 1.2 Personal → Passport ───────────────────────────
     document.getElementById('btn-personal-next')?.addEventListener('click', function() {
         saveStep('card-personal', 'save_step_personal.php', function() {
             navTo('card-passport');
         });
     });
 
-    // â”€â”€ 1.3 Passport â†’ Residential â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 1.3 Passport → Residential ───────────────────────
     document.getElementById('btn-passport-next')?.addEventListener('click', function() {
         saveStep('card-passport', 'save_step_passport.php', function() {
             navTo('card-residential');
         });
     });
 
-    // â”€â”€ 1.4 Residential â†’ Background â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 1.4 Residential → Background ─────────────────────
     document.getElementById('btn-residential-next')?.addEventListener('click', function() {
         saveStep('card-residential', 'save_step_residential.php', function() {
             navTo('card-background');
         });
     });
 
-    // â”€â”€ 1.5 Background + Declaration â†’ Confirm / Traveller Added â”€â”€
+    // ── 1.5 Background + Declaration → Confirm / Traveller Added ──
     document.getElementById('btn-declaration-save')?.addEventListener('click', function() {
         // Check both declaration checkboxes first
         const cb1 = document.querySelector('#card-background input[name="t_decl_accurate"]');
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // â”€â”€ Add Next Traveller â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Add Next Traveller ────────────────────────────────
     document.getElementById('btn-add-next-traveller')?.addEventListener('click', function() {
         currentTraveller++;
         updatePersonLabels();
@@ -358,12 +358,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('btn-add-next-traveller')?.click();
     });
 
-    // â”€â”€ Confirm Back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Confirm Back ──────────────────────────────────────
     document.getElementById('btn-confirm-back')?.addEventListener('click', function() {
         navTo('card-declaration');
     });
 
-    // â”€â”€ Confirm â†’ Payment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Confirm → Payment ─────────────────────────────────
     document.getElementById('btn-confirm-pay-now')?.addEventListener('click', function() {
         const agree = document.getElementById('confirm-details-check');
         if (!agree?.checked) {
@@ -392,12 +392,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     });
 
-    // â”€â”€ Payment Back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Payment Back ──────────────────────────────────────
     document.getElementById('btn-payment-back')?.addEventListener('click', function() {
         navTo('card-confirm');
     });
 
-    // â”€â”€ Pay Now â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Pay Now ───────────────────────────────────────────
     document.getElementById('submit-payment-btn')?.addEventListener('click', function() {
         if (typeof EtaValidator !== 'undefined' && !EtaValidator.validateStep('card-payment')) {
             showToast('Please fill in all payment details.', 'error');
@@ -410,14 +410,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof EtaValidator !== 'undefined') EtaValidator.attachLiveValidation('card-contact');
 });
 
-// â”€â”€ Razorpay Payment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Razorpay Payment ──────────────────────────────────────
 async function initiatePayment() {
     showLoader('Initialising payment...');
     try {
         const fd = collectData('card-payment');
         const selectedPlan = document.querySelector('input[name="plan"]:checked')?.value || 'standard';
         fd.append('plan', selectedPlan);
-        const res  = await fetch('backend/payment.php', { method: 'POST', body: fd });
+        const res  = await fetch('modules/payments/payment.php', { method: 'POST', body: fd });
         const data = await res.json();
         hideLoader();
 
@@ -437,7 +437,7 @@ async function initiatePayment() {
                 vfd.append('razorpay_payment_id',  response.razorpay_payment_id);
                 vfd.append('razorpay_order_id',    response.razorpay_order_id);
                 vfd.append('razorpay_signature',   response.razorpay_signature);
-                const vres  = await fetch('backend/payment_verify.php', { method: 'POST', body: vfd });
+                const vres  = await fetch('modules/payments/payment_verify.php', { method: 'POST', body: vfd });
                 const vdata = await vres.json();
                 hideLoader();
                 if (vdata.success) {
@@ -459,6 +459,7 @@ async function initiatePayment() {
         showToast('Payment error: ' + err.message, 'error');
     }
 }
+
 
 
 

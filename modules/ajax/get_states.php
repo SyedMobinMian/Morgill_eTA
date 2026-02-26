@@ -8,7 +8,7 @@
  */
 
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../../core/bootstrap.php';
 
 // Frontend se aayi hui country_id pakdo (e.g., ?country_id=101)
 $country_id = (int)($_GET['country_id'] ?? 0);

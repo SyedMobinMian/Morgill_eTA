@@ -114,10 +114,29 @@ define('RAZORPAY_KEY_ID', env('RAZORPAY_KEY_ID', ''));
 define('RAZORPAY_KEY_SECRET', env('RAZORPAY_KEY_SECRET', ''));
 
 // Application aur email identity ki settings.
+function detectAppUrl(): string {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+    $appRoot = realpath(dirname(__DIR__));
+    $docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? realpath((string)$_SERVER['DOCUMENT_ROOT']) : false;
+
+    if ($appRoot && $docRoot) {
+        $appNorm = str_replace('\\', '/', (string)$appRoot);
+        $docNorm = rtrim(str_replace('\\', '/', (string)$docRoot), '/');
+
+        if (str_starts_with($appNorm, $docNorm)) {
+            $subPath = trim(substr($appNorm, strlen($docNorm)), '/');
+            return rtrim($scheme . '://' . $host . ($subPath !== '' ? '/' . $subPath : ''), '/');
+        }
+    }
+
+    return rtrim($scheme . '://' . $host, '/');
+}
 define('ADMIN_EMAIL', env('ADMIN_EMAIL', 'admin@yourdomain.com'));
 define('FROM_EMAIL', env('FROM_EMAIL', 'noreply@yourdomain.com'));
 define('FROM_NAME', env('FROM_NAME', 'dcForm Application'));
-define('APP_URL', rtrim(env('APP_URL', 'http://localhost/dcForm'), '/'));
+define('APP_URL', rtrim(env('APP_URL', detectAppUrl()), '/'));
 define('EMAIL_BCC_ADMIN', envBool('EMAIL_BCC_ADMIN', false));
 
 // SMTP credentials aur transport ki settings.
@@ -215,3 +234,4 @@ function verifyCsrf(string $token): bool {
     }
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
+

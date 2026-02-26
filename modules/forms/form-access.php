@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../backend/config.php';
+require_once __DIR__ . '/../../core/bootstrap.php';
 
 $token = trim((string)($_GET['token'] ?? ''));
 if ($token === '' || !preg_match('/^[a-f0-9]{48}$/', $token)) {
@@ -62,4 +62,5 @@ $formPath = $formPathMap[$country] ?? ('form.php?country=' . urlencode($country)
 </div>
 </body>
 </html>
+
 

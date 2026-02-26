@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/includes/layout.php';
-require_once __DIR__ . '/../backend/mailer.php';
+require_once __DIR__ . '/../core/mailer.php';
 requireRole(['master', 'admin']);
 
 $db = adminDB();
@@ -216,3 +216,4 @@ renderAdminLayoutStart('Email', 'email');
     </tbody>
 </table>
 <?php renderAdminLayoutEnd(); ?>
+

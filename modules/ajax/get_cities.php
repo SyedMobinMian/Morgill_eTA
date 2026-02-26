@@ -8,7 +8,7 @@
  */
 
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../../core/bootstrap.php';
 
 // Frontend se state_id pakdo (e.g., ?state_id=45)
 $state_id = (int)($_GET['state_id'] ?? 0);

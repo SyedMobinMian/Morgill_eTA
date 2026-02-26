@@ -4,7 +4,7 @@
  */
 
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../../core/bootstrap.php';
 
 $countryId = (int)($_GET['country_id'] ?? 0);
 if ($countryId <= 0) {
@@ -34,4 +34,5 @@ try {
     error_log('Fetch Cities By Country Error: ' . $e->getMessage());
     echo json_encode([]);
 }
+
 

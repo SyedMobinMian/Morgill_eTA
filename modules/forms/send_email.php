@@ -5,7 +5,7 @@
  * ============================================================
  */
 
-require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/../../core/mailer.php';
 
 function ensureSystemEmailLogTable(PDO $db): void {
     // System-generated emails ka audit trail yahan store hota hai.
@@ -265,3 +265,4 @@ function sendPaymentConfirmationEmail(array $application, string $paymentId, int
     // Central SMTP function connection/auth/retry errors handle karti hai.
     return sendSmtpMail($toEmail, $toName, $subject, $body, ADMIN_EMAIL, FROM_NAME, $attachments);
 }
+

@@ -5,8 +5,8 @@
 // ============================================================
 header('Content-Type: application/json');
 session_start();
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/validate.php';
+require_once __DIR__ . '/../../core/bootstrap.php';
+require_once __DIR__ . '/../forms/validate.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(false, 'Invalid request method.');
@@ -144,3 +144,4 @@ jsonResponse(true, 'Order created.', [
     'name'     => FROM_NAME,
     'reference'=> $_SESSION['application_ref'] ?? '',
 ]);
+

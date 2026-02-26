@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once dirname(__DIR__, 2) . '/backend/config.php';
+require_once dirname(__DIR__, 2) . '/core/bootstrap.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -190,4 +190,5 @@ function getOrCreateFormAccess(PDO $db, int $travellerId, string $country): arra
     $fetch->execute([':id' => $id]);
     return (array)$fetch->fetch();
 }
+
 

@@ -38,7 +38,7 @@ if ($relative === '') {
 $base = realpath(dirname(__DIR__));
 $fullPath = realpath($base . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relative));
 
-if ($fullPath === false || $base === false || strpos($fullPath, $base . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR) !== 0) {
+if ($fullPath === false || $base === false || strpos($fullPath, $base . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR) !== 0) {
     flash('error', 'Invalid file path.');
     redirectTo(baseUrl('documents.php'));
 }
@@ -53,3 +53,4 @@ header('Content-Disposition: attachment; filename="' . basename($fullPath) . '"'
 header('Content-Length: ' . filesize($fullPath));
 readfile($fullPath);
 exit;
+

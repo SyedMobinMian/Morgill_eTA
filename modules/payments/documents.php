@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../../core/bootstrap.php';
 
 function ensurePaymentDocumentTable(PDO $db): void {
     $db->exec("CREATE TABLE IF NOT EXISTS payment_documents (
@@ -83,8 +83,8 @@ function writeSimplePdf(string $absolutePath, string $title, array $lines): void
 }
 
 function generatePaymentDocuments(PDO $db, int $applicationId, string $reference, string $paymentId, float $amount, string $currency = 'INR'): array {
-    ensureDir('uploads/receipts');
-    ensureDir('uploads/forms');
+    ensureDir('storage/receipts');
+    ensureDir('storage/forms');
 
     $travellersStmt = $db->prepare("SELECT * FROM travellers WHERE application_id = :id ORDER BY traveller_number");
     $travellersStmt->execute([':id' => $applicationId]);
@@ -97,8 +97,8 @@ function generatePaymentDocuments(PDO $db, int $applicationId, string $reference
     $safeRef = preg_replace('/[^A-Za-z0-9\-]/', '', $reference) ?: ('APP-' . $applicationId);
     $stamp = date('YmdHis');
 
-    $receiptRel = 'uploads/receipts/receipt-' . $safeRef . '-' . $stamp . '.pdf';
-    $formRel = 'uploads/forms/form-' . $safeRef . '-' . $stamp . '.pdf';
+    $receiptRel = 'storage/receipts/receipt-' . $safeRef . '-' . $stamp . '.pdf';
+    $formRel = 'storage/forms/form-' . $safeRef . '-' . $stamp . '.pdf';
 
     $receiptLines = [
         'Reference: ' . $reference,
@@ -144,7 +144,7 @@ function generatePaymentDocuments(PDO $db, int $applicationId, string $reference
 }
 
 function generateFormDetailsDocument(PDO $db, int $applicationId, string $reference): array {
-    ensureDir('uploads/forms');
+    ensureDir('storage/forms');
 
     $travellersStmt = $db->prepare("SELECT * FROM travellers WHERE application_id = :id ORDER BY traveller_number");
     $travellersStmt->execute([':id' => $applicationId]);
@@ -156,7 +156,7 @@ function generateFormDetailsDocument(PDO $db, int $applicationId, string $refere
 
     $safeRef = preg_replace('/[^A-Za-z0-9\-]/', '', $reference) ?: ('APP-' . $applicationId);
     $stamp = date('YmdHis');
-    $formRel = 'uploads/forms/form-submission-' . $safeRef . '-' . $stamp . '.pdf';
+    $formRel = 'storage/forms/form-submission-' . $safeRef . '-' . $stamp . '.pdf';
 
     $lines = [
         'Reference: ' . $reference,
@@ -188,3 +188,4 @@ function generateFormDetailsDocument(PDO $db, int $applicationId, string $refere
         'form_abs' => buildAbsolutePath($formRel),
     ];
 }
+

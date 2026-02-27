@@ -66,6 +66,7 @@ const EtaValidator = {
         billing_last_name:        { required:true,  minLen:2, regex:/^[a-zA-Z\s\-']+$/, regexMsg:'Only letters.' },
         billing_email:            { required:false, regex:/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/, regexMsg:'Valid email required.' },
         billing_address:          { required:true,  minLen:5 },
+        billing_country:          { required:true },
         billing_city:             { required:true,  minLen:2 },
         billing_zip:              { required:true,  regex:/^[A-Z0-9\s\-]{3,10}$/i, regexMsg:'Valid zip code required.' },
     },
@@ -341,7 +342,7 @@ const EtaValidator = {
             health_condition:'Health Condition',
             billing_first_name:'First Name', billing_last_name:'Last Name',
             billing_email:'Billing Email', billing_address:'Billing Address',
-            billing_city:'City', billing_zip:'Zip Code',
+            billing_country:'Country', billing_city:'City', billing_zip:'Zip Code',
         };
         // Fallback: Convert snake_case to Title Case if not in map
         return m[n] || n.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());

@@ -87,8 +87,15 @@ logSystemEmail(
 );
 
 if (!$sent) {
-    jsonResponse(false, 'Details confirmed but email failed: ' . ($mailError ?: 'SMTP error.'));
+    jsonResponse(true, 'Details confirmed. Email could not be sent right now.', [
+        'email_sent' => false,
+        'already_sent' => false,
+        'email_error' => $mailError ?: 'SMTP error.',
+    ]);
 }
 
-jsonResponse(true, 'Details confirmed. Confirmation email sent successfully.', ['email_sent' => true, 'already_sent' => false]);
+jsonResponse(true, 'Details confirmed. Confirmation email sent successfully.', [
+    'email_sent' => true,
+    'already_sent' => false,
+]);
 

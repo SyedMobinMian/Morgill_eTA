@@ -103,104 +103,16 @@ $list = $db->query("SELECT t.id, CONCAT(TRIM(t.first_name), ' ', TRIM(t.last_nam
     ORDER BY t.created_at DESC
     LIMIT 200")->fetchAll();
 
-// Recent Email Logs filters.
-$logStatus = sanitizeText($_GET['log_status'] ?? '', 10);
-$logEmail = sanitizeEmail($_GET['log_email'] ?? '');
-$logFrom = sanitizeText($_GET['log_from'] ?? '', 20);
-$logTo = sanitizeText($_GET['log_to'] ?? '', 20);
-
-$where = [];
-$params = [];
-if (in_array($logStatus, ['sent', 'failed'], true)) {
-    $where[] = 'l.send_status = :send_status';
-    $params[':send_status'] = $logStatus;
-}
-if ($logEmail !== '') {
-    $where[] = 'l.recipient_email = :recipient_email';
-    $params[':recipient_email'] = $logEmail;
-}
-if ($logFrom !== '') {
-    $where[] = 'DATE(l.created_at) >= :from_date';
-    $params[':from_date'] = $logFrom;
-}
-if ($logTo !== '') {
-    $where[] = 'DATE(l.created_at) <= :to_date';
-    $params[':to_date'] = $logTo;
-}
-
-$sql = "SELECT l.created_at, l.recipient_email, l.subject_line, l.send_status
-    FROM admin_email_logs l";
-if (!empty($where)) {
-    $sql .= ' WHERE ' . implode(' AND ', $where);
-}
-$sql .= ' ORDER BY l.id DESC LIMIT 100';
-
-$logsStmt = $db->prepare($sql);
-$logsStmt->execute($params);
-$logs = $logsStmt->fetchAll();
+// Recent Email Logs (no filters).
+$logs = $db->query("SELECT l.created_at, l.recipient_email, l.subject_line, l.send_status
+    FROM admin_email_logs l
+    ORDER BY l.id DESC
+    LIMIT 100")->fetchAll();
 
 renderAdminLayoutStart('Email', 'email');
 ?>
-<form method="post" class="panel">
-    <h3>Send Form Link Email</h3>
-
-    <label>Traveller (required for token link)</label>
-    <select name="traveller_id" required>
-        <option value="">Select traveller</option>
-        <?php foreach ($list as $item): ?>
-            <option value="<?= (int)$item['id'] ?>"><?= esc($item['label']) ?></option>
-        <?php endforeach; ?>
-    </select>
-
-    <label>Custom Recipient Email (optional)</label>
-    <input type="email" name="custom_email" maxlength="255" placeholder="If filled, email will be sent to this address">
-
-    <label>Country Form</label>
-    <select name="country" required>
-        <option value="Canada">Canada</option>
-        <option value="Vietnam">Vietnam</option>
-        <option value="UK">UK</option>
-    </select>
-
-    <label>Subject</label>
-    <input type="text" name="subject_line" maxlength="255" placeholder="Default subject auto-generated if left blank">
-
-    <label>Email Body (HTML supported)</label>
-    <textarea name="body_html" rows="8" placeholder="Write your email body. Secure form link and footer policy will still be included."></textarea>
-
-    <small style="color:#667085;">
-        Terms note and company footer are appended automatically to every sent email.
-    </small>
-
-    <input type="hidden" name="csrf_token" value="<?= esc(csrfToken()) ?>">
-    <button type="submit">Send Email</button>
-</form>
 
 <h3>Recent Email Logs</h3>
-<form method="get" class="panel" style="max-width:100%; margin-bottom:12px;">
-    <h3 style="margin:0;">Filters</h3>
-
-    <label>Status</label>
-    <select name="log_status">
-        <option value="">All</option>
-        <option value="sent" <?= $logStatus === 'sent' ? 'selected' : '' ?>>Sent</option>
-        <option value="failed" <?= $logStatus === 'failed' ? 'selected' : '' ?>>Failed</option>
-    </select>
-
-    <label>Recipient Email</label>
-    <input type="email" name="log_email" value="<?= esc($logEmail) ?>" placeholder="recipient@example.com">
-
-    <label>From Date</label>
-    <input type="date" name="log_from" value="<?= esc($logFrom) ?>">
-
-    <label>To Date</label>
-    <input type="date" name="log_to" value="<?= esc($logTo) ?>">
-
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button type="submit">Apply Filters</button>
-        <a href="<?= esc(baseUrl('email.php')) ?>" style="padding:9px 10px; border-radius:8px; border:1px solid var(--line); text-decoration:none; color:var(--text); background:#fff;">Reset</a>
-    </div>
-</form>
 
 <table>
     <thead><tr><th>Date</th><th>Email</th><th>Subject</th><th>Status</th></tr></thead>

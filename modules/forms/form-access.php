@@ -29,9 +29,9 @@ if (!$row) {
 
 $country = (string)$row['form_country'];
 $formPathMap = [
-    'Canada' => 'form-canada.php',
-    'Vietnam' => 'form-vietnam.php',
-    'UK' => 'form-uk.php',
+    'Canada' => 'form.php?country=Canada',
+    'Vietnam' => 'form.php?country=Vietnam',
+    'UK' => 'form.php?country=UK',
 ];
 $formPath = $formPathMap[$country] ?? ('form.php?country=' . urlencode($country));
 ?>
@@ -52,15 +52,16 @@ $formPath = $formPathMap[$country] ?? ('form.php?country=' . urlencode($country)
 </head>
 <body>
 <div class="wrap">
-    <h1><?= htmlspecialchars($row['form_country']) ?> Form</h1>
-    <p>Hello <?= htmlspecialchars(trim($row['first_name'] . ' ' . $row['last_name'])) ?>,</p>
-    <p>Your unique form number: <span class="num"><?= htmlspecialchars($row['form_number']) ?></span></p>
-    <p>Application reference: <?= htmlspecialchars($row['reference']) ?></p>
-    <p>Email: <?= htmlspecialchars($row['email']) ?></p>
-    <p>Current form step: <?= htmlspecialchars($row['step_completed'] ?: 'Not Started') ?></p>
-    <a class="btn" href="<?= htmlspecialchars(rtrim(APP_URL, '/') . '/' . $formPath) ?>">Open Main Form</a>
+    <h1><?= htmlspecialchars($row['form_country'], ENT_QUOTES, 'UTF-8') ?> Form</h1>
+    <p>Hello <?= htmlspecialchars(trim($row['first_name'] . ' ' . $row['last_name']), ENT_QUOTES, 'UTF-8') ?>,</p>
+    <p>Your unique form number: <span class="num"><?= htmlspecialchars($row['form_number'], ENT_QUOTES, 'UTF-8') ?></span></p>
+    <p>Application reference: <?= htmlspecialchars($row['reference'], ENT_QUOTES, 'UTF-8') ?></p>
+    <p>Email: <?= htmlspecialchars($row['email'], ENT_QUOTES, 'UTF-8') ?></p>
+    <p>Current form step: <?= htmlspecialchars($row['step_completed'] ?: 'Not Started', ENT_QUOTES, 'UTF-8') ?></p>
+    <a class="btn" href="<?= htmlspecialchars(rtrim(APP_URL, '/') . '/' . $formPath, ENT_QUOTES, 'UTF-8') ?>">Open Main Form</a>
 </div>
 </body>
 </html>
+
 
 

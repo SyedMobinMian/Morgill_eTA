@@ -1,10 +1,7 @@
 <?php
-// ============================================================
-//  backend/payment.php — Create Razorpay Order
-//  POST se aata hai form.js initiatePayment()
-// ============================================================
 header('Content-Type: application/json');
 session_start();
+
 require_once __DIR__ . '/../../core/bootstrap.php';
 require_once __DIR__ . '/../forms/validate.php';
 
@@ -12,136 +9,109 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(false, 'Invalid request method.');
 }
 
-// ── Session check ─────────────────────────────────────────
+if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+    jsonResponse(false, 'Security token invalid. Please refresh and try again.');
+}
+
 if (empty($_SESSION['application_id'])) {
     jsonResponse(false, 'Session expired. Please start your application again.');
 }
 
-$applicationId = (int) $_SESSION['application_id'];
+if (!defined('MW_CLIENT_ID') || MW_CLIENT_ID === '' || !defined('MW_CLIENT_SECRET') || MW_CLIENT_SECRET === '' || !defined('MW_MMID') || MW_MMID === '') {
+    jsonResponse(false, 'Payment gateway is not configured. Please contact support.');
+}
 
-// ── Plan select karo (card-confirm se aata hai) ───────────
+$applicationId = (int) $_SESSION['application_id'];
 $plan = clean($_POST['plan'] ?? $_SESSION['plan'] ?? 'standard');
-if (!in_array($plan, ['standard','priority'])) $plan = 'standard';
+if (!in_array($plan, ['standard', 'priority'], true)) {
+    $plan = 'standard';
+}
 $_SESSION['plan'] = $plan;
 
-// ── Billing fields validate karo ──────────────────────────
 $errors = [];
-$billingFields = [
-    'billing_first_name' => 'First Name',
-    'billing_last_name'  => 'Last Name',
-    'billing_address'    => 'Billing Address',
-    'billing_city'       => 'City',
-    'billing_zip'        => 'Zip / Postal Code',
-];
-foreach ($billingFields as $field => $label) {
-    $v = trim($_POST[$field] ?? '');
-    if ($v === '') $errors[$field] = "$label is required.";
-}
-if (!empty($_POST['billing_email'])) {
-    if ($err = validateEmail(trim($_POST['billing_email']))) {
-        $errors['billing_email'] = $err;
-    }
-}
+$firstName = trim((string)($_POST['billing_first_name'] ?? ''));
+$lastName = trim((string)($_POST['billing_last_name'] ?? ''));
+$address = trim((string)($_POST['billing_address'] ?? ''));
+$city = trim((string)($_POST['billing_city'] ?? ''));
+$zip = trim((string)($_POST['billing_zip'] ?? ''));
+$country = trim((string)($_POST['billing_country'] ?? ''));
+$state = trim((string)($_POST['billing_state'] ?? ''));
+$email = trim((string)($_POST['billing_email'] ?? ''));
+
+if ($err = validateName($firstName, 'First Name')) $errors['billing_first_name'] = $err;
+if ($err = validateName($lastName, 'Last Name')) $errors['billing_last_name'] = $err;
+if ($err = validateRequired($address, 'Billing Address')) $errors['billing_address'] = $err;
+if ($err = validateRequired($city, 'City')) $errors['billing_city'] = $err;
+if ($err = validatePostalCode($zip)) $errors['billing_zip'] = $err;
+if ($err = validateSelect($country, 'Country')) $errors['billing_country'] = $err;
+if ($email !== '' && ($err = validateEmail($email))) $errors['billing_email'] = $err;
+
 if (!empty($errors)) {
     jsonResponse(false, 'Please fill in all billing fields.', ['errors' => $errors]);
 }
 
-// ── Total amount calculate karo ───────────────────────────
-$db   = getDB();
-$stmt = $db->prepare("SELECT total_travellers FROM applications WHERE id = :id LIMIT 1");
+$db = getDB();
+$stmt = $db->prepare('SELECT total_travellers FROM applications WHERE id = :id LIMIT 1');
 $stmt->execute([':id' => $applicationId]);
-$app  = $stmt->fetch();
+$app = $stmt->fetch();
 
 if (!$app) {
     jsonResponse(false, 'Application not found. Please start again.');
 }
 
-$feePerPerson = ETA_FEE; // config.php mein define hai (paise mein, e.g. 7900 = ₹79)
-$totalAmount  = $feePerPerson * max(1, (int)$app['total_travellers']);
+$feePerPerson = ETA_FEE;
+$totalAmountMinor = $feePerPerson * max(1, (int)$app['total_travellers']);
 if ($plan === 'priority') {
-    $totalAmount = (int)($totalAmount * 1.5); // +50% priority surcharge
+    $totalAmountMinor = (int)($totalAmountMinor * 1.5);
 }
 
-// ── Razorpay Order create karo ────────────────────────────
-$orderData = [
-    'amount'          => $totalAmount,
-    'currency'        => 'INR',
-    'receipt'         => $_SESSION['application_ref'] ?? 'ETA-' . $applicationId,
-    'payment_capture' => 1,
-    'notes'           => [
-        'application_id' => $applicationId,
-        'reference'      => $_SESSION['application_ref'] ?? '',
-        'plan'           => $plan,
-    ],
-];
+$currency = 'USD';
+$totalAmountMajor = number_format($totalAmountMinor / 100, 2, '.', '');
+$orderId = 'MW-' . $applicationId . '-' . time() . '-' . bin2hex(random_bytes(3));
 
-$curl = curl_init('https://api.razorpay.com/v1/orders');
-curl_setopt_array($curl, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => json_encode($orderData),
-    CURLOPT_USERPWD        => RAZORPAY_KEY_ID . ':' . RAZORPAY_KEY_SECRET,
-    CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-    CURLOPT_SSL_VERIFYPEER => true,
-    CURLOPT_TIMEOUT        => 30,
-]);
-$response = curl_exec($curl);
-$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-$curlErr  = curl_error($curl);
-curl_close($curl);
-
-if ($curlErr) {
-    error_log('Razorpay CURL error: ' . $curlErr);
-    jsonResponse(false, 'Could not connect to payment gateway. Please try again.');
-}
-
-$order = json_decode($response, true);
-if ($httpCode !== 200 || empty($order['id'])) {
-    error_log('Razorpay order failed: ' . $response);
-    jsonResponse(false, 'Payment gateway error. Please try again later.');
-}
-
-// ── Payment record DB mein save karo ─────────────────────
-// Pehle check karo — same order already exists?
-$chk = $db->prepare("SELECT id FROM payments WHERE application_id=:aid AND razorpay_order_id=:oid LIMIT 1");
-$chk->execute([':aid' => $applicationId, ':oid' => $order['id']]);
-if (!$chk->fetch()) {
-    $stmt = $db->prepare("
-        INSERT INTO payments
-            (application_id, razorpay_order_id, amount, currency, plan,
-             billing_first_name, billing_last_name, billing_email,
-             billing_address, billing_country, billing_state, billing_city, billing_zip)
-        VALUES
-            (:app_id, :order_id, :amount, 'INR', :plan,
-             :bfn, :bln, :bem,
-             :badr, :bco, :bst, :bci, :bzi)
-    ");
-    $stmt->execute([
-        ':app_id'   => $applicationId,
-        ':order_id' => $order['id'],
-        ':amount'   => $totalAmount / 100, // paise → rupees
-        ':plan'     => $plan,
-        ':bfn'      => clean($_POST['billing_first_name'] ?? ''),
-        ':bln'      => clean($_POST['billing_last_name']  ?? ''),
-        ':bem'      => clean($_POST['billing_email']      ?? ''),
-        ':badr'     => clean($_POST['billing_address']    ?? ''),
-        ':bco'      => clean($_POST['billing_country']    ?? ''),
-        ':bst'      => clean($_POST['billing_state']      ?? ''),
-        ':bci'      => clean($_POST['billing_city']       ?? ''),
-        ':bzi'      => clean($_POST['billing_zip']        ?? ''),
-    ]);
-}
-
-$_SESSION['payment_order_id'] = $order['id'];
-$_SESSION['plan']             = $plan;
-
-// ── Response ──────────────────────────────────────────────
-jsonResponse(true, 'Order created.', [
-    'order_id' => $order['id'],
-    'amount'   => $totalAmount,
-    'currency' => 'INR',
-    'key'      => RAZORPAY_KEY_ID,
-    'name'     => FROM_NAME,
-    'reference'=> $_SESSION['application_ref'] ?? '',
+$stmt = $db->prepare(
+    "INSERT INTO payments
+        (application_id, razorpay_order_id, amount, currency, plan,
+         billing_first_name, billing_last_name, billing_email,
+         billing_address, billing_country, billing_state, billing_city, billing_zip, status)
+     VALUES
+        (:app_id, :order_id, :amount, :currency, :plan,
+         :bfn, :bln, :bem,
+         :badr, :bco, :bst, :bci, :bzi, 'created')"
+);
+$stmt->execute([
+    ':app_id' => $applicationId,
+    ':order_id' => $orderId,
+    ':amount' => $totalAmountMajor,
+    ':currency' => $currency,
+    ':plan' => $plan,
+    ':bfn' => clean($firstName),
+    ':bln' => clean($lastName),
+    ':bem' => clean($email),
+    ':badr' => clean($address),
+    ':bco' => clean($country),
+    ':bst' => clean($state),
+    ':bci' => clean($city),
+    ':bzi' => clean($zip),
 ]);
 
+$_SESSION['payment_order_id'] = $orderId;
+
+$apiBase = trim((string)MW_API_BASE);
+$parts = parse_url($apiBase);
+$scheme = $parts['scheme'] ?? 'https';
+$host = $parts['host'] ?? 'base.merchantwarrior.com';
+$port = isset($parts['port']) ? ':' . (int)$parts['port'] : '';
+$payframeSubmitUrl = $scheme . '://' . $host . $port . '/payframe/';
+
+jsonResponse(true, 'Payment initialised.', [
+    'order_id' => $orderId,
+    'amount' => $totalAmountMajor,
+    'currency' => $currency,
+    'merchant_uuid' => MW_CLIENT_ID,
+    'api_key' => MW_CLIENT_SECRET,
+    'payframe_js' => MW_PAYFRAME_JS,
+    'payframe_src' => MW_PAYFRAME_BASE,
+    'submit_url' => $payframeSubmitUrl,
+    'reference' => $_SESSION['application_ref'] ?? '',
+]);

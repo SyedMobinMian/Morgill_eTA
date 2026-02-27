@@ -7,9 +7,9 @@ requireAdmin();
 
 // Public form links ki static mapping.
 $forms = [
-    ['name' => 'Canada Form', 'country' => 'Canada', 'path' => 'form-canada.php', 'class' => 'form-country-canada'],
-    ['name' => 'Vietnam Form', 'country' => 'Vietnam', 'path' => 'form-vietnam.php', 'class' => 'form-country-vietnam'],
-    ['name' => 'UK Form', 'country' => 'UK', 'path' => 'form-uk.php', 'class' => 'form-country-uk'],
+    ['name' => 'Canada Form', 'country' => 'Canada', 'path' => 'form.php?country=Canada', 'class' => 'form-country-canada'],
+    ['name' => 'Vietnam Form', 'country' => 'Vietnam', 'path' => 'form.php?country=Vietnam', 'class' => 'form-country-vietnam'],
+    ['name' => 'UK Form', 'country' => 'UK', 'path' => 'form.php?country=UK', 'class' => 'form-country-uk'],
 ];
 
 renderAdminLayoutStart('Forms', 'forms');
@@ -33,3 +33,4 @@ renderAdminLayoutStart('Forms', 'forms');
     <?php endforeach; ?>
 </div>
 <?php renderAdminLayoutEnd(); ?>
+

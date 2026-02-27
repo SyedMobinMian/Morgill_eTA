@@ -56,6 +56,23 @@ main { margin-left: var(--sidebar-w); min-height: 100vh; }
 .cards h3 { margin: 0 0 8px; color: var(--muted); font-size: .95rem; }
 .cards p { margin: 0; font-size: 1.5rem; font-weight: 700; }
 
+/* Dashboard charts */
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+    margin-top: 16px;
+    width: 100%;
+}
+.chart-grid .panel {
+    max-width: none;
+}
+.chart-wrap {
+    position: relative;
+    height: 320px;
+}
+
 /* Forms page: full clickable visual cards */
 .form-link-grid {
     display: grid;
@@ -472,7 +489,7 @@ code { display: inline-block; margin-top: 5px; font-size: .85rem; color: var(--m
     .user-form-panel label { min-width: 0; }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 800px) {
     .sidebar {
         position: static;
         width: 100%;
@@ -483,5 +500,8 @@ code { display: inline-block; margin-top: 5px; font-size: .85rem; color: var(--m
     }
     .topbar {
         left: 0;
+    }
+    .chart-grid {
+        grid-template-columns: 1fr;
     }
 }

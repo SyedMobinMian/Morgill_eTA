@@ -57,9 +57,16 @@ function radioSvg(): string {
 
 function countryOpts(array $countries, string $placeholder = 'Select country...'): string {
     $html = "<option value=''>$placeholder</option>";
-    foreach ($countries as $c)
-        $html .= "<option value='{$c['name']}' data-id='{$c['id']}'>{$c['name']}</option>";
+    foreach ($countries as $c) {
+        $name = htmlspecialchars((string)$c['name'], ENT_QUOTES, 'UTF-8');
+        $id = htmlspecialchars((string)$c['id'], ENT_QUOTES, 'UTF-8');
+        $html .= "<option value='{$name}' data-id='{$id}'>{$name}</option>";
+    }
     return $html;
+}
+
+function escOpt(string $value): string {
+    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 ?>
 <!DOCTYPE html>
@@ -89,12 +96,7 @@ function countryOpts(array $countries, string $placeholder = 'Select country...'
 <div id="eta-toast"></div>
 
 <!-- NAVBAR -->
-<nav class="navbar bg-white shadow-sm">
-    <div class="container d-flex justify-content-between align-items-center py-2">
-        <a class="logo" href="#"><img src="assets/img/logo/logo.webp" alt="Logo"></a>
-        <a href="#" class="btn btn-primary btn-custom">Apply Now</a>
-    </div>
-</nav>
+<?php require __DIR__ . '/../../includes/navbar.php'; ?>
 
 <!-- FORM -->
 <div id="<?= htmlspecialchars($formContainerId, ENT_QUOTES, 'UTF-8') ?>" class="country-form-container country-<?= htmlspecialchars(strtolower($formCountry), ENT_QUOTES, 'UTF-8') ?>">
@@ -166,7 +168,7 @@ function countryOpts(array $countries, string $placeholder = 'Select country...'
                         <select name="t_purpose_of_visit" class="form-select s2">
                             <option value="">Select purpose...</option>
                             <?php foreach($purposes as $p): ?>
-                            <option value="<?= $p['name'] ?>"><?= $p['name'] ?></option>
+                            <option value="<?= escOpt((string)$p['name']) ?>"><?= escOpt((string)$p['name']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -486,7 +488,7 @@ function countryOpts(array $countries, string $placeholder = 'Select country...'
                         <select name="t_occupation" id="occupation-select" class="form-select s2">
                             <option value="">Select occupation...</option>
                             <?php foreach($occupations as $o): ?>
-                            <option value="<?= $o['name'] ?>"><?= $o['name'] ?></option>
+                            <option value="<?= escOpt((string)$o['name']) ?>"><?= escOpt((string)$o['name']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -501,7 +503,7 @@ function countryOpts(array $countries, string $placeholder = 'Select country...'
                                 <select name="t_job_title" class="form-select s2">
                                     <option value="">Select job title...</option>
                                     <?php foreach($jobTitles as $j): ?>
-                                    <option value="<?= $j['name'] ?>"><?= $j['name'] ?></option>
+                                    <option value="<?= escOpt((string)$j['name']) ?>"><?= escOpt((string)$j['name']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -939,7 +941,6 @@ function countryOpts(array $countries, string $placeholder = 'Select country...'
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
 // ═══════════════════════════════════════════════════════════
@@ -1524,9 +1525,10 @@ window.FORM_DISPLAY_NAME = <?= json_encode($formCountry . ' Visa Application', J
 </script>
 
 <!-- Form Logic & Validation -->
-<script src="assets/js/validator1.js"></script>
-<script src="assets/js/form.js"></script>
+<script src="assets/js/validator1.js?v=<?= filemtime(__DIR__ . '/../../assets/js/validator1.js') ?>"></script>
+<script src="assets/js/form.js?v=<?= filemtime(__DIR__ . '/../../assets/js/form.js') ?>"></script>
 
 </body>
 </html>
+
 

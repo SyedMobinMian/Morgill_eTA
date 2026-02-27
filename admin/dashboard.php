@@ -74,6 +74,60 @@ foreach ($graph as $g) {
     }
 }
 
+// Monthly summary (last 6 months): forms filled + payments received.
+$monthKeys = [];
+$monthLabels = [];
+$cursor = new DateTime('first day of this month');
+for ($i = 0; $i < 6; $i++) {
+    $monthKeys[] = $cursor->format('Y-m');
+    $monthLabels[$cursor->format('Y-m')] = $cursor->format('M Y');
+    $cursor->modify('-1 month');
+}
+$monthKeys = array_reverse($monthKeys);
+
+$formsByMonth = array_fill_keys($monthKeys, 0);
+$paymentsByMonth = array_fill_keys($monthKeys, 0.0);
+
+$formsRows = $db->query("SELECT DATE_FORMAT(updated_at, '%Y-%m') AS ym, COUNT(*) AS cnt
+    FROM travellers
+    WHERE decl_accurate = 1 AND decl_terms = 1
+    GROUP BY ym")->fetchAll();
+foreach ($formsRows as $row) {
+    $ym = (string)$row['ym'];
+    if (isset($formsByMonth[$ym])) {
+        $formsByMonth[$ym] = (int)$row['cnt'];
+    }
+}
+
+$paymentRows = $db->query("SELECT DATE_FORMAT(created_at, '%Y-%m') AS ym, IFNULL(SUM(amount),0) AS total
+    FROM payments
+    WHERE status = 'captured'
+    GROUP BY ym")->fetchAll();
+foreach ($paymentRows as $row) {
+    $ym = (string)$row['ym'];
+    if (isset($paymentsByMonth[$ym])) {
+        $paymentsByMonth[$ym] = (float)$row['total'];
+    }
+}
+
+// Applications per month (people applied)
+$appsByMonth = array_fill_keys($monthKeys, 0);
+$appRows = $db->query("SELECT DATE_FORMAT(created_at, '%Y-%m') AS ym, COUNT(*) AS cnt
+    FROM applications
+    GROUP BY ym")->fetchAll();
+foreach ($appRows as $row) {
+    $ym = (string)$row['ym'];
+    if (isset($appsByMonth[$ym])) {
+        $appsByMonth[$ym] = (int)$row['cnt'];
+    }
+}
+
+$snapshotLabels = array_map(static fn($g) => $g['label'], $graph);
+$snapshotValues = array_map(static fn($g) => (int)$g['value'], $graph);
+$monthLabelList = array_map(static fn($ym) => $monthLabels[$ym] ?? $ym, $monthKeys);
+$paymentSeries = array_map(static fn($ym) => (float)$paymentsByMonth[$ym], $monthKeys);
+$appsSeries = array_map(static fn($ym) => (int)$appsByMonth[$ym], $monthKeys);
+
 // Recent documents table ke liye last 10 records lao.
 $recentDocs = $db->query("SELECT reference, payment_id, amount, currency, receipt_file, form_pdf_file, created_at
     FROM payment_documents
@@ -82,6 +136,17 @@ $recentDocs = $db->query("SELECT reference, payment_id, amount, currency, receip
 
 renderAdminLayoutStart('Dashboard', 'dashboard');
 ?>
+
+<!-- CARDS -->
+<div class="dashboard-cards">
+    <?php foreach ($cards as $idx => $card): ?>
+        <article class="metric-card metric-card-<?= ($idx % 6) + 1 ?>">
+            <h3><?= esc($card['label']) ?></h3>
+            <p><?= (int)$card['value'] ?></p>
+        </article>
+    <?php endforeach; ?>
+</div>
+<!-- Business Kpi's -->
 <section class="kpi-section">
     <div class="graph-header">
         <h3>Business KPIs</h3>
@@ -97,36 +162,99 @@ renderAdminLayoutStart('Dashboard', 'dashboard');
         <?php endforeach; ?>
     </div>
 </section>
-
-<div class="dashboard-cards">
-    <?php foreach ($cards as $idx => $card): ?>
-        <article class="metric-card metric-card-<?= ($idx % 6) + 1 ?>">
-            <h3><?= esc($card['label']) ?></h3>
-            <p><?= (int)$card['value'] ?></p>
-        </article>
-    <?php endforeach; ?>
-</div>
-
-<section class="dashboard-graph">
-    <div class="graph-header">
-        <h3>Performance Snapshot</h3>
-        <span>Live totals from current records</span>
-    </div>
-    <div class="snapshot-list">
-        <?php foreach ($graph as $g): ?>
-            <?php $width = max(6, (int)round((((int)$g['value']) / $graphMax) * 100)); ?>
-            <div class="snapshot-item">
-                <div class="snapshot-meta">
-                    <span><?= esc($g['label']) ?></span>
-                    <strong><?= (int)$g['value'] ?></strong>
-                </div>
-                <div class="snapshot-track">
-                    <div class="snapshot-fill" style="width: <?= $width ?>%"></div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
+<!-- charts / bars -->
+<section class="chart-grid">
+    <section class="panel">
+        <div class="graph-header">
+            <h3>Performance Snapshot</h3>
+            <span>Bar view of key totals</span>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="snapshotBar"></canvas>
+        </div>
+    </section>
+    <section class="panel">
+        <div class="graph-header">
+            <h3>Monthly Trend</h3>
+            <span>Payments received vs people applied</span>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="monthlyLine"></canvas>
+        </div>
+    </section>
 </section>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const snapshotLabels = <?= json_encode($snapshotLabels, JSON_UNESCAPED_UNICODE) ?>;
+const snapshotValues = <?= json_encode($snapshotValues, JSON_UNESCAPED_UNICODE) ?>;
+const monthLabels = <?= json_encode($monthLabelList, JSON_UNESCAPED_UNICODE) ?>;
+const paymentSeries = <?= json_encode($paymentSeries, JSON_UNESCAPED_UNICODE) ?>;
+const appsSeries = <?= json_encode($appsSeries, JSON_UNESCAPED_UNICODE) ?>;
+
+const barCtx = document.getElementById('snapshotBar');
+if (barCtx) {
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: snapshotLabels,
+            datasets: [{
+                label: 'Count',
+                data: snapshotValues,
+                backgroundColor: '#0f62fe',
+                borderRadius: 8,
+                maxBarThickness: 36
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    });
+}
+
+const lineCtx = document.getElementById('monthlyLine');
+if (lineCtx) {
+    new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: monthLabels,
+            datasets: [
+                {
+                    label: 'Payments Received (INR)',
+                    data: paymentSeries,
+                    borderColor: '#169c5b',
+                    backgroundColor: 'rgba(22,156,91,0.12)',
+                    tension: 0.35,
+                    fill: true
+                },
+                {
+                    label: 'People Applied',
+                    data: appsSeries,
+                    borderColor: '#0f62fe',
+                    backgroundColor: 'rgba(15,98,254,0.12)',
+                    tension: 0.35,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+</script>
 
 <h3 style="margin-top:16px;">Recent Payment Documents</h3>
 <table>

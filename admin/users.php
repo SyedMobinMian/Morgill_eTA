@@ -251,73 +251,74 @@ ORDER BY t.created_at DESC";
 $rows = $db->query($sql)->fetchAll();
 renderAdminLayoutStart('Users / Reports', 'users');
 ?>
-<div class="user-top-layout">
+<!-- Auto fil card on edit -->
+<!-- <div class="user-top-layout">
     <div class="user-form-wrap">
         <?php if ($canCreate): ?>
-        <form method="post" class="panel user-form-panel" autocomplete="on">
-            <h3><?= $isEdit ? 'Edit User' : 'Create User' ?></h3>
-            <div class="user-form-grid">
-                <div class="form-field">
-                    <label for="user-first-name">First Name</label>
-                    <input id="user-first-name" type="text" name="first_name" required maxlength="100" autocomplete="given-name" value="<?= esc($isEdit ? (string)($editRow['first_name'] ?? '') : '') ?>">
+            <form method="post" class="panel user-form-panel" autocomplete="on">
+                <h3><?= $isEdit ? 'Edit User' : 'Create User' ?></h3>
+                <div class="user-form-grid">
+                    <div class="form-field">
+                        <label for="user-first-name">First Name</label>
+                        <input id="user-first-name" type="text" name="first_name" required maxlength="100" autocomplete="given-name" value="<?= esc($isEdit ? (string)($editRow['first_name'] ?? '') : '') ?>">
+                    </div>
+                    <div class="form-field">
+                        <label for="user-last-name">Last Name</label>
+                        <input id="user-last-name" type="text" name="last_name" required maxlength="100" autocomplete="family-name" value="<?= esc($isEdit ? (string)($editRow['last_name'] ?? '') : '') ?>">
+                    </div>
+                    <div class="form-field">
+                        <label for="user-email">Email</label>
+                        <input id="user-email" type="email" name="email" required maxlength="255" autocomplete="email" value="<?= esc($isEdit ? (string)($editRow['email'] ?? '') : '') ?>">
+                    </div>
+                    <div class="form-field">
+                        <label for="user-dob">Date of Birth</label>
+                        <input id="user-dob" type="date" name="date_of_birth" autocomplete="on" value="<?= esc($isEdit ? (string)($editRow['date_of_birth'] ?? '') : '') ?>">
+                    </div>
+                    <div class="form-field">
+                        <label for="user-country-from">Country From</label>
+                        <input id="user-country-from" type="text" name="country_from" required maxlength="100" autocomplete="country-name" value="<?= esc($isEdit ? (string)($editRow['country_from'] ?? '') : '') ?>">
+                    </div>
+                    <div class="form-field">
+                        <label for="user-travel-mode">Travel Mode</label>
+                        <select id="user-travel-mode" name="travel_mode" required>
+                            <option value="solo" <?= (($isEdit ? ($editRow['travel_mode'] ?? 'solo') : 'solo') === 'solo') ? 'selected' : '' ?>>Solo</option>
+                            <option value="group" <?= (($isEdit ? ($editRow['travel_mode'] ?? '') : '') === 'group') ? 'selected' : '' ?>>Group</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="user-total-travellers">Total Travellers</label>
+                        <input id="user-total-travellers" type="number" min="1" max="10" name="total_travellers" required value="<?= esc((string)($isEdit ? ($editRow['total_travellers'] ?? 1) : 1)) ?>">
+                    </div>
+                    <div class="form-field">
+                        <label for="user-payment-status">Payment Status</label>
+                        <select id="user-payment-status" name="payment_status" required>
+                            <?php $statusOptions = ['draft','submitted','paid','processing','approved','rejected']; ?>
+                            <?php foreach ($statusOptions as $status): ?>
+                                <option value="<?= esc($status) ?>" <?= (($isEdit ? ($editRow['payment_status'] ?? 'draft') : 'draft') === $status) ? 'selected' : '' ?>><?= esc(ucfirst($status)) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-field">
-                    <label for="user-last-name">Last Name</label>
-                    <input id="user-last-name" type="text" name="last_name" required maxlength="100" autocomplete="family-name" value="<?= esc($isEdit ? (string)($editRow['last_name'] ?? '') : '') ?>">
-                </div>
-                <div class="form-field">
-                    <label for="user-email">Email</label>
-                    <input id="user-email" type="email" name="email" required maxlength="255" autocomplete="email" value="<?= esc($isEdit ? (string)($editRow['email'] ?? '') : '') ?>">
-                </div>
-                <div class="form-field">
-                    <label for="user-dob">Date of Birth</label>
-                    <input id="user-dob" type="date" name="date_of_birth" autocomplete="on" value="<?= esc($isEdit ? (string)($editRow['date_of_birth'] ?? '') : '') ?>">
-                </div>
-                <div class="form-field">
-                    <label for="user-country-from">Country From</label>
-                    <input id="user-country-from" type="text" name="country_from" required maxlength="100" autocomplete="country-name" value="<?= esc($isEdit ? (string)($editRow['country_from'] ?? '') : '') ?>">
-                </div>
-                <div class="form-field">
-                    <label for="user-travel-mode">Travel Mode</label>
-                    <select id="user-travel-mode" name="travel_mode" required>
-                        <option value="solo" <?= (($isEdit ? ($editRow['travel_mode'] ?? 'solo') : 'solo') === 'solo') ? 'selected' : '' ?>>Solo</option>
-                        <option value="group" <?= (($isEdit ? ($editRow['travel_mode'] ?? '') : '') === 'group') ? 'selected' : '' ?>>Group</option>
-                    </select>
-                </div>
-                <div class="form-field">
-                    <label for="user-total-travellers">Total Travellers</label>
-                    <input id="user-total-travellers" type="number" min="1" max="10" name="total_travellers" required value="<?= esc((string)($isEdit ? ($editRow['total_travellers'] ?? 1) : 1)) ?>">
-                </div>
-                <div class="form-field">
-                    <label for="user-payment-status">Payment Status</label>
-                    <select id="user-payment-status" name="payment_status" required>
-                        <?php $statusOptions = ['draft','submitted','paid','processing','approved','rejected']; ?>
-                        <?php foreach ($statusOptions as $status): ?>
-                            <option value="<?= esc($status) ?>" <?= (($isEdit ? ($editRow['payment_status'] ?? 'draft') : 'draft') === $status) ? 'selected' : '' ?>><?= esc(ucfirst($status)) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
 
-            <input type="hidden" name="action" value="<?= $isEdit ? 'update' : 'add' ?>">
-            <input type="hidden" name="traveller_id" value="<?= (int)($isEdit ? ($editRow['traveller_id'] ?? 0) : 0) ?>">
-            <input type="hidden" name="csrf_token" value="<?= esc(csrfToken()) ?>">
+                <input type="hidden" name="action" value="<?= $isEdit ? 'update' : 'add' ?>">
+                <input type="hidden" name="traveller_id" value="<?= (int)($isEdit ? ($editRow['traveller_id'] ?? 0) : 0) ?>">
+                <input type="hidden" name="csrf_token" value="<?= esc(csrfToken()) ?>">
 
-            <div class="user-form-actions">
-                <button type="submit"><?= $isEdit ? 'Update User' : 'Create User' ?></button>
-                <?php if ($isEdit): ?>
-                    <a href="<?= esc(baseUrl('users.php')) ?>" class="btn-link-secondary">Cancel Edit</a>
-                <?php endif; ?>
-            </div>
-        </form>
+                <div class="user-form-actions">
+                    <button type="submit"><?= $isEdit ? 'Update User' : 'Create User' ?></button>
+                    <?php if ($isEdit): ?>
+                        <a href="<?= esc(baseUrl('users.php')) ?>" class="btn-link-secondary">Cancel Edit</a>
+                    <?php endif; ?>
+                </div>
+            </form>
         <?php else: ?>
-        <div class="panel user-form-panel">
-            <h3>View-only Access</h3>
-            <p style="margin:0;color:var(--muted);">Staff can view records. Create, edit, and delete actions are disabled.</p>
-        </div>
+            <div class="panel user-form-panel">
+                <h3>View-only Access</h3>
+                <p style="margin:0;color:var(--muted);">Staff can view records. Create, edit, and delete actions are disabled.</p>
+            </div>
         <?php endif; ?>
     </div>
-</div>
+</div> -->
 
 <table>
     <thead>

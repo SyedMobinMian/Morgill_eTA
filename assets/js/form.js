@@ -411,55 +411,130 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ── Razorpay Payment ──────────────────────────────────────
+let mwPayframeInstance = null;
+let mwPaymentContext = null;
+let mwFrameMounted = false;
+
+function ensurePayframeScript(scriptUrl) {
+    return new Promise((resolve, reject) => {
+        if (typeof window.payframe === 'function') {
+            resolve();
+            return;
+        }
+        const existing = document.querySelector('script[data-mw-payframe="1"]');
+        if (existing) {
+            existing.addEventListener('load', () => resolve(), { once: true });
+            existing.addEventListener('error', () => reject(new Error('Unable to load payframe script.')), { once: true });
+            return;
+        }
+        const s = document.createElement('script');
+        s.src = scriptUrl;
+        s.async = true;
+        s.dataset.mwPayframe = '1';
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Unable to load payframe script.'));
+        document.head.appendChild(s);
+    });
+}
+
 async function initiatePayment() {
-    showLoader('Initialising payment...');
     try {
+        if (mwPayframeInstance && mwPaymentContext?.orderId) {
+            showLoader('Submitting card securely...');
+            try {
+                mwPayframeInstance.submitPayframe();
+            } catch (e) {
+                hideLoader();
+                showToast('Could not submit payframe. Please reload and try again.', 'error');
+            }
+            return;
+        }
+
+        showLoader('Initialising payment...');
         const fd = collectData('card-payment');
         const selectedPlan = document.querySelector('input[name="plan"]:checked')?.value || 'standard';
         fd.append('plan', selectedPlan);
-        const res  = await fetch('modules/payments/payment.php', { method: 'POST', body: fd });
+
+        const res = await fetch('modules/payments/payment.php', { method: 'POST', body: fd });
         const data = await res.json();
-        hideLoader();
+        if (!data.success) {
+            hideLoader();
+            showToast(data.message || 'Payment init failed.', 'error');
+            return;
+        }
 
-        if (!data.success) { showToast(data.message || 'Payment init failed.', 'error'); return; }
+        await ensurePayframeScript(data.payframe_js);
+        mwPaymentContext = { orderId: data.order_id };
 
-        const options = {
-            key:         data.key,
-            amount:      data.amount,
-            currency:    data.currency || 'INR',
-            name:        window.FORM_DISPLAY_NAME || 'Visa Application',
-            description: 'eTA Application Fee',
-            order_id:    data.order_id,
-            handler: async function(response) {
-                showLoader('Verifying payment...');
+        if (!mwFrameMounted) {
+            const cardInfoBlock = document.querySelector('#card-payment .review-section.mb-4 .p-3');
+            if (cardInfoBlock) {
+                cardInfoBlock.innerHTML = `
+                    <p class="text-muted mb-2">Enter your card details in secure Merchant Warrior frame.</p>
+                    <div id="mw-payframe-container" style="min-height:220px;"></div>
+                `;
+                mwFrameMounted = true;
+            }
+        }
+
+        const payframeDiv = document.getElementById('mw-payframe-container');
+        if (!payframeDiv) {
+            hideLoader();
+            showToast('Payment frame container not found.', 'error');
+            return;
+        }
+        payframeDiv.innerHTML = '';
+
+        mwPayframeInstance = new payframe(
+            data.merchant_uuid,
+            data.api_key,
+            'mw-payframe-container',
+            data.payframe_src || 'camp',
+            data.submit_url || 'camp',
+            null,
+            'visa,mastercard',
+            'addCard'
+        );
+
+        mwPayframeInstance.loaded = function() { hideLoader(); };
+
+        mwPayframeInstance.mwCallback = async function(cardId, arg2, arg3) {
+            const invalidCardIdValues = ['error', 'NO_TOKEN', 'TOKEN_ERROR', 'TOKEN_INVALID', 'TOKEN_EXPIRED', ''];
+            const normalized = String(cardId || '').trim();
+            if (arg2 !== undefined || arg3 !== undefined || invalidCardIdValues.includes(normalized)) {
+                hideLoader();
+                showToast('Card tokenisation failed. Please re-check card details.', 'error');
+                return;
+            }
+
+            showLoader('Verifying payment...');
+            try {
                 const vfd = new FormData();
-                vfd.append('csrf_token',           csrf());
-                vfd.append('razorpay_payment_id',  response.razorpay_payment_id);
-                vfd.append('razorpay_order_id',    response.razorpay_order_id);
-                vfd.append('razorpay_signature',   response.razorpay_signature);
-                const vres  = await fetch('modules/payments/payment_verify.php', { method: 'POST', body: vfd });
+                vfd.append('csrf_token', csrf());
+                vfd.append('order_id', mwPaymentContext?.orderId || '');
+                vfd.append('card_id', cardId);
+
+                const vres = await fetch('modules/payments/payment_verify.php', { method: 'POST', body: vfd });
                 const vdata = await vres.json();
                 hideLoader();
+
                 if (vdata.success) {
                     window.location.href = 'thank-you.php?ref=' + (vdata.reference || '');
-                } else {
-                    showToast('Payment verification failed.', 'error');
+                    return;
                 }
-            },
-            prefill: {
-                name:  document.querySelector('[name="billing_first_name"]')?.value + ' ' +
-                       document.querySelector('[name="billing_last_name"]')?.value,
-                email: document.querySelector('[name="billing_email"]')?.value,
-            },
-            theme: { color: '#0d6efd' }
+                showToast(vdata.message || 'Payment verification failed.', 'error');
+            } catch (err) {
+                hideLoader();
+                showToast('Payment verify failed: ' + err.message, 'error');
+            }
         };
-        new Razorpay(options).open();
-    } catch(err) {
+
+        mwPayframeInstance.deploy();
         hideLoader();
-        showToast('Payment error: ' + err.message, 'error');
+        showToast('Secure card frame loaded. Fill card details and click Submit again.', 'success');
+    } catch (err) {
+        hideLoader();
+        const msg = (err && err.message) ? err.message : String(err || 'Unknown error');
+        showToast('Payment error: ' + msg, 'error');
     }
 }
-
-
-
-

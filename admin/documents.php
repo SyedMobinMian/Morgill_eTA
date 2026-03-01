@@ -7,10 +7,12 @@ requireAdmin();
 
 $db = adminDB();
 $canManage = canManageRecords();
+$applicationId = (int)($_GET['application_id'] ?? 0);
 
 // Documents page ke liye payment docs + traveler/app info join kiya ja raha hai.
-$rows = $db->query("SELECT
+$sql = "SELECT
     pd.id,
+    pd.application_id,
     pd.reference,
     pd.payment_id,
     pd.amount,
@@ -24,11 +26,24 @@ $rows = $db->query("SELECT
 FROM payment_documents pd
 INNER JOIN applications a ON a.id = pd.application_id
 LEFT JOIN travellers t ON t.application_id = a.id AND t.traveller_number = 1
-ORDER BY pd.id DESC")->fetchAll();
+";
+$params = [];
+if ($applicationId > 0) {
+    $sql .= " WHERE pd.application_id = :application_id";
+    $params[':application_id'] = $applicationId;
+}
+$sql .= " ORDER BY pd.id DESC";
+
+$stmt = $db->prepare($sql);
+$stmt->execute($params);
+$rows = $stmt->fetchAll();
 
 renderAdminLayoutStart('Documents', 'documents');
 ?>
 <h3 style="margin:0 0 12px;">Payment Receipts & Form PDFs</h3>
+<?php if ($applicationId > 0): ?>
+    <p style="margin:0 0 12px;color:var(--muted);">Showing documents for Application ID: <?= (int)$applicationId ?></p>
+<?php endif; ?>
 <table>
     <thead>
         <tr>
@@ -44,6 +59,13 @@ renderAdminLayoutStart('Documents', 'documents');
         </tr>
     </thead>
     <tbody>
+        <?php if (empty($rows)): ?>
+            <tr>
+                <td colspan="9" style="text-align:center;color:var(--muted);">
+                    No documents found<?= $applicationId > 0 ? ' for this application.' : '.' ?>
+                </td>
+            </tr>
+        <?php endif; ?>
         <!-- Har document row me download URLs dynamic ban rahe hain -->
         <?php foreach ($rows as $row): ?>
             <?php

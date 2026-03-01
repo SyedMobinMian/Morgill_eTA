@@ -69,6 +69,7 @@ $currency = 'USD';
 $totalAmountMajor = number_format($totalAmountMinor / 100, 2, '.', '');
 $orderId = 'MW-' . $applicationId . '-' . time() . '-' . bin2hex(random_bytes(3));
 
+// Note: Inserting Merchant Warrior Order ID into 'razorpay_order_id' column to maintain DB compatibility.
 $stmt = $db->prepare(
     "INSERT INTO payments
         (application_id, razorpay_order_id, amount, currency, plan,

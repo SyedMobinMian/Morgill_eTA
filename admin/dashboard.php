@@ -210,10 +210,14 @@ if (barCtx) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            indexAxis: 'y',
             plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, ticks: { precision: 0 } }
+                x: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                },
+                y: { grid: { display: false } }
             }
         }
     });

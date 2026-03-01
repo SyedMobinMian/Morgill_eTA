@@ -59,7 +59,7 @@ main { margin-left: var(--sidebar-w); min-height: 100vh; }
 /* Dashboard charts */
 .chart-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
     gap: 16px;
     align-items: stretch;
     margin-top: 16px;
@@ -67,10 +67,18 @@ main { margin-left: var(--sidebar-w); min-height: 100vh; }
 }
 .chart-grid .panel {
     max-width: none;
+    min-width: 0;
 }
 .chart-wrap {
     position: relative;
     height: 320px;
+    min-width: 0;
+    overflow: hidden;
+}
+.chart-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
 }
 
 /* Forms page: full clickable visual cards */
@@ -465,9 +473,145 @@ code { display: inline-block; margin-top: 5px; font-size: .85rem; color: var(--m
     line-height: 1.1;
 }
 
+/* Users: full-screen edit modal */
+.ua-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(9, 19, 35, 0.45);
+    z-index: 90;
+}
+.ua-modal {
+    position: fixed;
+    top: 4vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1220px, 96vw);
+    height: 92vh;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    z-index: 91;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3);
+}
+.ua-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    background: #f8fbff;
+}
+.ua-modal-head h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+.ua-close {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 700;
+    background: #fff;
+}
+.ua-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    overflow: auto;
+}
+.ua-app-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+.ua-app-grid label {
+    display: grid;
+    gap: 4px;
+    font-size: .8rem;
+}
+.ua-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+}
+.ua-tab-btn {
+    background: #eef3fb;
+    color: #163257;
+    border: 1px solid #d4deee;
+    border-radius: 999px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: .82rem;
+    font-weight: 600;
+}
+.ua-tab-btn.active {
+    background: #0f62fe;
+    border-color: #0f62fe;
+    color: #fff;
+}
+.ua-tab-panel {
+    display: none;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px;
+    background: #fff;
+}
+.ua-tab-panel.active {
+    display: block;
+}
+.ua-field-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+.ua-field-grid label {
+    display: grid;
+    gap: 4px;
+    font-size: .76rem;
+    color: var(--muted);
+}
+.ua-field-grid input,
+.ua-field-grid select,
+.ua-field-grid textarea {
+    width: 100%;
+    padding: 8px 9px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    font-size: .84rem;
+    color: var(--text);
+    background: #fff;
+}
+.ua-actions {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 10px 0 2px;
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 30%);
+}
+
 @media (max-width: 1200px) {
     .user-form-grid {
         gap: 10px;
+    }
+    .ua-field-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ua-app-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 @media (max-width: 760px) {
@@ -502,6 +646,19 @@ code { display: inline-block; margin-top: 5px; font-size: .85rem; color: var(--m
         left: 0;
     }
     .chart-grid {
+        grid-template-columns: 1fr;
+    }
+    .chart-wrap {
+        height: 280px;
+    }
+    .ua-modal {
+        width: 98vw;
+        top: 1vh;
+        height: 98vh;
+        border-radius: 10px;
+    }
+    .ua-field-grid,
+    .ua-app-grid {
         grid-template-columns: 1fr;
     }
 }

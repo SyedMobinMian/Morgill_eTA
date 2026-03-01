@@ -33,6 +33,7 @@ if (!defined('MW_CLIENT_ID') || MW_CLIENT_ID === '' || !defined('MW_CLIENT_SECRE
 $db = getDB();
 ensurePaymentDocumentTable($db);
 
+// Note: 'razorpay_order_id' is used to store the Merchant Warrior Order ID due to legacy schema.
 $paymentStmt = $db->prepare(
     'SELECT id, amount, currency, plan, billing_first_name, billing_last_name, billing_email, billing_country
      FROM payments
@@ -138,6 +139,7 @@ if ($transactionId === '') {
 try {
     $db->beginTransaction();
 
+    // Mapping Merchant Warrior response to existing legacy columns (formerly Razorpay)
     $update = $db->prepare(
         "UPDATE payments
          SET razorpay_payment_id = :pid,

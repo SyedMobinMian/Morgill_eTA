@@ -46,40 +46,7 @@ foreach ($data as $k => $v) {
 if ($data['date_of_birth'] === '') $data['date_of_birth'] = null;
 
 // ── Validate ──────────────────────────────────────────────
-$errors = [];
-
-// Date of birth
-if (empty($data['date_of_birth'])) {
-    $errors['date_of_birth'] = 'Date of Birth is required.';
-} elseif ($err = validatePastDate($data['date_of_birth'], 'Date of Birth')) {
-    $errors['date_of_birth'] = $err;
-}
-
-// Gender
-if (empty($data['gender'])) {
-    $errors['gender'] = 'Please select gender.';
-}
-
-// Country of birth
-if (empty($data['country_of_birth'])) {
-    $errors['country_of_birth'] = 'Country of Birth is required.';
-}
-
-// City of birth
-if (empty($data['city_of_birth'])) {
-    $errors['city_of_birth'] = 'City / Town of Birth is required.';
-}
-
-// Marital status
-if (empty($data['marital_status'])) {
-    $errors['marital_status'] = 'Please select Marital Status.';
-}
-
-// Nationality
-if (empty($data['nationality'])) {
-    $errors['nationality'] = 'Nationality is required.';
-}
-
+$errors = validateStepPersonal($data);
 if (!empty($errors)) {
     jsonResponse(false, 'Please fix the errors below.', ['errors' => $errors]);
 }
@@ -108,4 +75,3 @@ $stmt->execute([
 ]);
 
 jsonResponse(true, 'Personal details saved.');
-
